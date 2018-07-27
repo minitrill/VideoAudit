@@ -19,10 +19,14 @@ class ClassifyNude(object):
 
     def test(self, pic_path):
         """
-        监测图片是否为
+        监测图片是否为暴露图片
         :param pic_path:
-        :return:
+        :return:Ture/False
         """
+        start = time.time()
+        result = nude.is_nude(pic_path)
+        print pic_path + " 该图片"
+        return result
 
 
 print nude.is_nude('./data/pron/1.jpg')
