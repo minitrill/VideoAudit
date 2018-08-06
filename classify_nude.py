@@ -7,6 +7,9 @@
 author    :   @h-j-13
 time      :   2018-7-21
 ref       :   https://blog.csdn.net/qq_42022255/article/details/80349112
+
+>>>test('1.png')
+True
 """
 
 import time
@@ -14,21 +17,24 @@ import time
 import nude
 
 
-class ClassifyNude(object):
-    """基于nude的图片分类器 图片 -> (裸露,非裸露)"""
-
-    def test(self, pic_path):
-        """
-        监测图片是否为暴露图片
-        :param pic_path:
-        :return:Ture/False
-        """
-        start = time.time()
-        result = nude.is_nude(pic_path)
-        print pic_path + " 该图片"
-        return result
+def test(pic_path):
+    """
+    基于nude的图片分类器 图片 -> (裸露,非裸露)
+    :param pic_path:
+    :return:Ture/False
+    """
+    start = time.time()
+    result = nude.is_nude(pic_path)
+    end = time.time()
+    print '\tresult\t:\t' + str(result) + "\tused\t:\t%.6f" % (end - start)
+    return result
 
 
-print nude.is_nude('./data/pron/1.jpg')
-print nude.is_nude('./data/pron/2.jpg')
-print nude.is_nude('./data/pron/3.jpg')
+if __name__ == '__main__':
+    import os
+
+    for c in os.listdir('./data'):
+        c_path = './data/' + c + '/'
+        for image_name in os.listdir(c_path):
+            print image_name,
+            test(c_path + image_name)
