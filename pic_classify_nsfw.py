@@ -136,7 +136,7 @@ def test(image_path):
 if __name__ == '__main__':
     s = time.time()
     train()
-    print 'train nsfw modle used: %6.f' % (time.time() - s)
+    print 'train nsfw modle used: %.6f' % (time.time() - s)
     for c in os.listdir('./data'):
         c_path = './data/' + c + '/'
         for image_name in os.listdir(c_path):
