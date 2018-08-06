@@ -37,4 +37,7 @@ if __name__ == '__main__':
         c_path = './data/' + c + '/'
         for image_name in os.listdir(c_path):
             print image_name,
-            test(c_path + image_name)
+            try:
+                test(c_path + image_name)
+            except Exception as e:
+                print '\tfailed'
