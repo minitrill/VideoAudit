@@ -8,7 +8,7 @@ author    :   @h-j-13
 time      :   2018-7-21
 ref       :   https://blog.csdn.net/qq_42022255/article/details/80349112
 
->>>test('1.png')
+>>>test('1.png')    # 判断色情图片T/F
 True
 """
 
