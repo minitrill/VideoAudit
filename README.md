@@ -204,12 +204,79 @@ INPUT_IMAGE_PATH
 这里可能还需要一个调参的过程才能发挥较好的效果,由于时间关系就暂时不在推进这个方向了.
 
 
-### 2. 图片指纹
+### 2. 图片指纹(MD5/Dhash)
 
 ### 3. 图片相似度
 构建一个恶意视频库,通过图片指纹与相似度技术结合hash索引进行快速检索
 
 ### 4. 图片OCR
+这里主要基于[Tesseract](https://github.com/tesseract-ocr)开发了图片OCR的功能
+使用之前需要预先[安装Tesseract环境](https://github.com/UB-Mannheim/tesseract/wiki)
+
+> Tesseract 是一个 OCR 库,目前由 Google 赞助(Google 也是一家以 OCR 和机器学习技术闻名于世的公司)。       
+Tesseract 是目前公认最优秀、最精确的开源 OCR 系统。 除了极高的精确度,Tesseract 也具有很高的灵活性。     
+它可以通过训练识别出任何字体，也可以识别出任何 Unicode 字符。
+
+**程序说明**        
+入口见`ocr.py`
+```python
+>>>ocr('test.png',lang='chi_sim')   # 制定图片路径,默认解析简体中文
+test 1234 qwer ':!0o
+```
+
+**测试**      
+1. 多文字测试  
+      
+原图          
+![1.png](https://upload-images.jianshu.io/upload_images/5617720-4e2ea6f012923af9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+识别结果
+```text
+We choose to go to the moon in this decade and do the other
+things, not because they are easy, but because they are hard，
+because that goal will serve to organize and measure the best of
+our energies and skills, because that challenge is one that we are
+willing to accept, one we are unwiling to postpone, and one which
+we intend to win, and the others, too.
+
+我们决定在这十年间登上月球并实现更多梦想，并非它们轻而
+易举，而正是因为它们困难重重。因为这个目标将促进我们实现最
+佳的组织并测试我们顶尖的技术和力量， 因为这个挑战我们乐于接
+受，因为这个氟战我们不愿推迟，因为这个挑战我们志在必得，其
+他的挑战也是如此。
+```        
+
+2. 多文字附加形状测试        
+
+原图          
+![2.png](https://upload-images.jianshu.io/upload_images/5617720-9c0225e2e176b3de.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+识别结果
+```text
+2   We choose to go to the moon in this decade and do the
+other things, not because they are easy, but because they are
+hard, because that goal will serve to organize and measure
+the best of our energies and skills, because that challenge is
+one that we are willing to accept, one we are unwilling to
+postpone, and one which we intend to win, and the others, too.
+
+我们决定在这十年间登上月球并实现更多梦想，并非它们
+轻而易举，而正是因为它们困难重重。因为这个目标将促进我
+们实现最佳的组织并测试我们顶尖的技术和力量，因为这个挑
+战我们乐于接受，因为这个挑战我们不愿推迟，因为这个挑战
+我们志在必得，其他的挑战也是如此。
+```        
+
+**后序**      
+经测试发现平均处理一张图片需要1~3s,对于以文字为主的图像识别效果尚可
+对于有背景尤其是背景比较花哨的图片识别能力一般,较差. 目前的功能
+满足对于类似于微博长文本图片情境下的处理及审核要求.
+
+对于这种图片目前的代码几乎没有识别能力
+![d.png](https://upload-images.jianshu.io/upload_images/5617720-f7aec2eda9978d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+有关改进与优化,这里主要思路一是首先将图片进行**降噪处理**,之后再进行ocr识别,       
+二是**结合深度学习**有针对性的训练某一特定图片的OCR识别,      
+*这里暂时没有查到相关的开源框架.暂时搁置.*
 
 ### 5. 视频言论聚合
 
