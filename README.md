@@ -108,6 +108,9 @@ YCbCr 颜色模式
 3. 色情图片判定的**规则过于简单**(如果这里能结合判断各个皮肤模块间的造型与关系效果则会变得更好)
 4. 难以区分鉴别色情图片与低俗图片
 
+例如,由于皮肤识别算法局限所造成的误判
+![jk.png](https://upload-images.jianshu.io/upload_images/5617720-9def0f544d0e24ff.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![jk2.png](https://upload-images.jianshu.io/upload_images/5617720-fd1c58c418a42211.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 经过了这个算法的实践,我们可以得到一些结论
 1. 判断皮肤是色情图片识别一个比较重要的方法
 2. 色情图片中9成以上是**过度暴露的女性**,这一点应该是接下来建模的重点考虑的因素
@@ -184,6 +187,19 @@ INPUT_IMAGE_PATH
 最后附上一张各个色情图片识别模型性能比较结果      
 ![](https://upload-images.jianshu.io/upload_images/5617720-2669c3c6a7254105.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
+#### 基于opencv的人脸(人像)识别
+基于上面所提到的局限性,现在希望能够从图片中把人体提取出来已增加人体区域所占图片大小的比例来提高nsfw模型的识别效果
+这里基于opencv所提供的训练模型开发了识别图片中人类身体特征的代码
+
+**程序说明**        
+程序入口为`body_recongnition.py`,功能函数为`detect()`     
+部分调参说明及核心函数详见代码中的注释及Doc
+
+**功能测试**
+以人脸识别为例
+![g2.png](https://upload-images.jianshu.io/upload_images/5617720-aac7ba4fbb4e0a34.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![g.png](https://upload-images.jianshu.io/upload_images/5617720-639d58cb6e1e5967.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+发现对于以人为主体的图片识别效果较好,但是对于人物占比较小的图片的识别能力一般,经常发生误判,
+这里可能还需要一个调参的过程才能发挥较好的效果,由于时间关系就暂时不在推进这个方向了.
 
 
 ### 2. 图片指纹
@@ -212,4 +228,4 @@ INPUT_IMAGE_PATH
 
 * 低俗视频
   - 视频被锁定(无法新增点击量,点赞,分享且不会出现在首页及个性化推送中)
-  - 视频上传者用户健康度扣20
+  - ~~视频上传者用户健康度扣20~~
