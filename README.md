@@ -206,6 +206,51 @@ INPUT_IMAGE_PATH
 
 ### 2. 图片指纹(MD5/Dhash)
 
+### 基于MD5的图片指纹
+这里是用md5来对图片的二进制数据来进行md5得到图片指纹
+
+**程序说明**
+程序入口`pic_md5.py`,函数入口`image_md5()`,只需要输入图片路径即可得到对应的md5值
+
+例如      
+mario.jpg       
+![](https://upload-images.jianshu.io/upload_images/5617720-9ebdfae0e85495a0.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+```python
+>>>from pic_md5 import image_md5
+>>>image_md5('mario.jpg')
+>>>1ae5226b5a371fecdc7f050beb828fb4
+```
+
+推荐使用方法
+```python
+>>>image_md5('test.jpg')                    # 生成图片MD5值
+1ae5226b5a371fecdc7f050beb828fb4
+
+>>>M = MaliciousImage()                     # 初始化恶意图片MD5数据类
+>>>M.add_image_md5(image_md5('1.jpg'))      # 添加恶意MD5值
+>>>M.add_image_md5(image_md5('1.bmp'),image_type='pron')      # 添加恶意MD5值,并指明类型
+>>>print M.has_key(image_md5('2.bmp'))      # 检测该图片MD5是否被收录
+False
+>>>print M.has_key(image_md5('1.bmp'))      # 检测该图片MD5是否被收录
+True
+>>>M.save2disk()                            # 数据持久化到本地磁盘
+```
+
+**优缺点**
+```diff
++ 实现简单,可跨平台
++ 相同图片即使更改后缀或简单的格式转换也不会改变MD5值
+- 图片通过第三方工具进行格式转换的时候会变更MD5值(jpg->bmp)
+- 相同内容图片但是分辨率不同会生成不同的MD5值
+```
+
+
+### 基于Dhash的图像指纹
+
+
+### 基于图片向量话算法
+
 ### 3. 图片相似度
 构建一个恶意视频库,通过图片指纹与相似度技术结合hash索引进行快速检索
 
@@ -229,7 +274,8 @@ test 1234 qwer ':!0o
       
 原图          
 ![1.png](https://upload-images.jianshu.io/upload_images/5617720-4e2ea6f012923af9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-识别结果
+
+识别结果        
 ```text
 We choose to go to the moon in this decade and do the other
 things, not because they are easy, but because they are hard，
@@ -249,7 +295,8 @@ we intend to win, and the others, too.
 
 原图          
 ![2.png](https://upload-images.jianshu.io/upload_images/5617720-9c0225e2e176b3de.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-识别结果
+
+识别结果    
 ```text
 2   We choose to go to the moon in this decade and do the
 other things, not because they are easy, but because they are
@@ -270,7 +317,7 @@ postpone, and one which we intend to win, and the others, too.
 对于有背景尤其是背景比较花哨的图片识别能力一般,较差. 目前的功能
 满足对于类似于微博长文本图片情境下的处理及审核要求.
 
-对于这种图片目前的代码几乎没有识别能力
+对于这种图片目前的代码几乎没有识别能力     
 ![d.png](https://upload-images.jianshu.io/upload_images/5617720-f7aec2eda9978d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
