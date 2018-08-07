@@ -196,8 +196,10 @@ INPUT_IMAGE_PATH
 部分调参说明及核心函数详见代码中的注释及Doc
 
 **功能测试**        
-以人脸识别为例
+以人脸识别为例 
+
 ![g2.png](https://upload-images.jianshu.io/upload_images/5617720-aac7ba4fbb4e0a34.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![g.png](https://upload-images.jianshu.io/upload_images/5617720-639d58cb6e1e5967.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 发现对于以人为主体的图片识别效果较好,但是对于人物占比较小的图片的识别能力一般,经常发生误判,
 这里可能还需要一个调参的过程才能发挥较好的效果,由于时间关系就暂时不在推进这个方向了.
 
