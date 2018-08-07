@@ -241,15 +241,112 @@ True
 ```diff
 + 实现简单,可跨平台
 + 相同图片即使更改后缀或简单的格式转换也不会改变MD5值
++ 基于Python自建的dict实现,查询为O(1),每次查询仅为 10^-6s
 - 图片通过第三方工具进行格式转换的时候会变更MD5值(jpg->bmp)
 - 相同内容图片但是分辨率不同会生成不同的MD5值
 ```
 
+### 基于dHash的图像指纹
+针对上面提到的一个图片只要进行微小的改变就会生成新的MD5值,希望能够扩大一个图片指纹所能覆盖的恶意图片范围
+这里采用了[感知哈希算法](https://www.cnblogs.com/faith0217/articles/4088386.html)中表现最好的[dHash](https://www.jianshu.com/p/193f0089b7a2)来实现图片指纹生成及相似图片检索的功能
 
-### 基于Dhash的图像指纹
+**算法原理**
+感知hash算法分类  
+- aHash：平均值哈希。速度比较快，但是常常不太精确。
+- pHash：感知哈希。精确度比较高，但是速度方面较差一些。
+- dHash：差异值哈希。Amazing！精确度较高，且速度也非常快。因此我就选择了dHash作为我图片判重的算法。
+
+1. aHash
+均值哈希算法主要是利用图片的低频信息，其工作过程如下：
+（1）缩小尺寸：去除高频和细节的最快方法是缩小图片，将图片缩小到8x8的尺寸，总共64个像素。不要保持纵横比，
+只需将其变成8*8的正方形。这样就可以比较任意大小的图片，摒弃不同尺寸、比例带来的图片差异。
+（2）简化色彩：将8*8的小图片转换成灰度图像。
+（3）计算平均值：计算所有64个像素的灰度平均值。
+（4）比较像素的灰度：将每个像素的灰度，与平均值进行比较。
+大于或等于平均值，记为1；小于平均值，记为0。
+（5）计算hash值：将上一步的比较结果，组合在一起，就构成了一个64位的整数，
+这就是这张图片的指纹。组合的次序并不重要，只要保证所有图片都采用同样次序就行了。
+
+2. pHash
+（1）缩小尺寸：pHash以小图片开始，但图片大于8*8，32*32是最好的。
+（2）简化色彩：将图片转化成灰度图像，进一步简化计算量。
+（3）计算DCT：计算图片的DCT变换，得到32*32的DCT系数矩阵。
+（4）缩小DCT：虽然DCT的结果是32*32大小的矩阵，但我们只要保留左上角的8*8的矩阵，这部分呈现了图片中的最低频率。
+（5）计算平均值：如同均值哈希一样，计算DCT的均值。
+（6）计算hash值：这是最主要的一步，根据8*8的DCT矩阵，设置0或1的64位的hash值，大于等于DCT均值的设为”1”，
+小于DCT均值的设为“0”。组合在一起，就构成了一个64位的整数，这就是这张图片的指纹。
+
+3. dHash
+（1）缩小尺寸：dHash以小图片开始
+（2）简化色彩：将图片转化成灰度图像，进一步简化计算量。
+（3）差异计算：差异值是通过计算每行相邻像素的强度对比得出的。我们的图片为9*8的分辨率，那么就有8行，每行9个像素。
+差异值是每行分别计算的，也就是第二行的第一个像素不会与第一行的任何像素比较。每一行有9个像素，那么就会产生8个差异值
+（4）计算hash值:我们将差异值数组中每一个值看做一个bit，每8个bit组成为一个16进制值，
+将16进制值连接起来转换为字符串，就得出了最后的dHash值。
+
+**举例说明dHash**
+
+1. 原图片     
+![1.jpg](https://upload-images.jianshu.io/upload_images/5617720-ba2007532dc9b2fb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+        
+2. 缩小尺寸        
+![2.png](https://upload-images.jianshu.io/upload_images/5617720-70e13187b18212cc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+        
+3. 灰度化         
+![3.png](https://upload-images.jianshu.io/upload_images/5617720-4081e49c45f0e22d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+4. 差异计算
+```
+01010101010101010110101101...
+....
+```
+
+5. 哈希值
+`1ae5226b5a371fecdc7f050beb828fb4`
 
 
-### 基于图片向量话算法
+**说明**
+程序入口见`pic_Dhash.py`中,`DHash`所提供的`calculate_hash()`,`hamming_distance()`方法
+使用之前需要借助python的PIL库来读取图片,使用方式如下
+
+```python
+>>>from PIL import Image
+>>>i1 = Image.open('1.jpg')
+>>>i2 = Image.open('2.jpg')
+>>>DHash.calculate_hash(i1)
+0038b694d5ba5538
+>>>DHash.hamming_distance(i1,i2)
+28
+```
+
+**性能测试**
+这里主要测试Dhash对于计算速度及相似图片的dhash汉明距离
+这里选取了约300张毫无关联的图片以及一个短视频每隔0.33s进行截图所生产的图片集
+将这两个图片集分别命名为`非关联`与`关联`  
+此外这个的时间是将两个图片**生成dHash值并进行汉明距离比较的时间之和**
+
+| 类别 | 平均汉明距离 | 平均处理时间(s) | 最大汉明距离 | 最小汉明距离 |
+| :------: | :------ | :------ | :------ | :------ |
+| 非关联 | 31.06 | 0.0292 | 42 | 10
+| 关联 | 10 | 0.0047 | 19 |2| 
+
+可以看出对于关联与非关联图片这里还是有一定区分度的,下面直观的举例来说明汉明距离与图片的关系
+
+1. 汉明距离<5(可以视为是相似图片)
+
+* 第一对    
+![b-001.jpg](https://upload-images.jianshu.io/upload_images/5617720-35709ff9392de9e4.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![b-002.jpg](https://upload-images.jianshu.io/upload_images/5617720-ee5f1276ee6d90fb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+* 第二队       
+![b-004.jpg](https://upload-images.jianshu.io/upload_images/5617720-31f2be42b20e8252.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![b-005.jpg](https://upload-images.jianshu.io/upload_images/5617720-9397847a6a02369d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+2. 汉明距离=17
+
+![b-017.jpg](https://upload-images.jianshu.io/upload_images/5617720-e659d1a751415843.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![b-016.jpg](https://upload-images.jianshu.io/upload_images/5617720-ee309a7c28c127ba.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+### 基于图片向量化算法
 
 ### 3. 图片相似度
 构建一个恶意视频库,通过图片指纹与相似度技术结合hash索引进行快速检索
