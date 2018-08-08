@@ -24,9 +24,14 @@ ref     :   https://blog.csdn.net/eds95/article/details/70146689
 [[-3.3737912e-03 -1.9819981e-03  3.3737912e-03 ...  4.7051071e-04
    4.5059556e-03  1.3064195e-03]
    ....
+>>>i1 = cv2.imread('test.jpg')
+>>>i2 = cv2.imread('test2.jpg')
+>>>print compare_pic(i1,i2,show=True)    # 进行特征比对
+165
 """
 
 import cv2
+import numpy as np
 
 # 特征变换全局对象
 D = 200
@@ -117,10 +122,78 @@ def surf(image, image_save_path=''):
     return des
 
 
+def drawMatchesKnn_cv2(img1_gray, kp1, img2_gray, kp2, goodMatch):
+    h1, w1 = img1_gray.shape[:2]
+    h2, w2 = img2_gray.shape[:2]
+
+    vis = np.zeros((max(h1, h2), w1 + w2, 3), np.uint8)
+    vis[:h1, :w1] = img1_gray
+    vis[:h2, w1:w1 + w2] = img2_gray
+
+    p1 = [kpp.queryIdx for kpp in goodMatch]
+    p2 = [kpp.trainIdx for kpp in goodMatch]
+
+    post1 = np.int32([kp1[pp].pt for pp in p1])
+    post2 = np.int32([kp2[pp].pt for pp in p2]) + (w1, 0)
+
+    for (x1, y1), (x2, y2) in zip(post1, post2):
+        cv2.line(vis, (x1, y1), (x2, y2), (0, 0, 255))
+
+    cv2.namedWindow("match", cv2.WINDOW_NORMAL)
+    cv2.imshow("match", vis)
+
+
+def compare_pic(image1, image2, show=False):
+    """
+    比较两张图片的特征
+    :param image1: cv2.imread
+    :param image2: cv2.imread
+    :param draw: 是否要显示匹配的结果
+    :return:匹配的特征点的个数
+    """
+    global SFIT, D
+    if SFIT is None:
+        SFIT = cv2.xfeatures2d.SIFT_create(D)
+    # sift
+    kp1, des1 = SFIT.detectAndCompute(image1, None)
+    kp2, des2 = SFIT.detectAndCompute(image2, None)
+
+    # BFmatcher with default parms
+    bf = cv2.BFMatcher(cv2.NORM_L2)
+    matches = bf.knnMatch(des1, des2, k=2)
+
+    # 匹配点
+    goodMatch = []
+    for m, n in matches:
+        if m.distance < 0.50 * n.distance:
+            goodMatch.append(m)
+
+    # show
+    if show:
+        drawMatchesKnn_cv2(image1, kp1, image2, kp2, goodMatch)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    return len(goodMatch)
+
+
 if __name__ == '__main__':
-    image = cv2.imread('test.jpg')
-    print sfit(image)
-    image = cv2.imread('test.jpg')
-    print orb(image)
-    image = cv2.imread('test.jpg')
-    print surf(image)
+    import os
+    import time
+
+    class_name = 'data/normal/'
+    image_list = []
+    for file_name in os.listdir(class_name):
+        image_list.append(cv2.imread(class_name + file_name))
+
+    for i in xrange(len(image_list) - 1):
+        start = time.time()
+        print compare_pic(image_list[i], image_list[i + 1]),
+        print time.time() - start
+
+    # image = cv2.imread('test.jpg')
+    # print sfit(image)
+    # image = cv2.imread('test.jpg')
+    # print orb(image)
+    # image = cv2.imread('test.jpg')
+    # print surf(image)
