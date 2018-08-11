@@ -3,7 +3,11 @@
 minitrill 视频审核模块
 
 ## 模块思路
-![](https://upload-images.jianshu.io/upload_images/5617720-73666fe2fd03f02e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+思路
+![13.png](https://upload-images.jianshu.io/upload_images/5617720-75978e7019fd77b9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+架构
+![](https://upload-images.jianshu.io/upload_images/5617720-90888a1421c5fb12.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ### 审核范围
 
@@ -129,7 +133,7 @@ True
 ```
 
 **性能测试**        
-这里收集了约300张图片,共分为色情(漏点),低俗(不漏电),普通图片三类,每类100张左右
+这里收集了约300张图片,共分为色情(漏点),低俗(不漏点),普通图片三类,每类100张左右
 
 | 类别 | 鉴别率/误判率(%) | 平均处理时间(s) |
 | :------: | :------ | :------ |
@@ -208,6 +212,9 @@ INPUT_IMAGE_PATH
 
 ### 基于MD5的图片指纹
 这里是用md5来对图片的二进制数据来进行md5得到图片指纹
+对于输入的图片先进行`灰度化`,紧接着`尺寸缩放`,最后根据图片的二进制数据结合`MD5`生成图片指纹 
+这样的处理逻辑可以使得一个MD5覆盖更多的同类图片(主要是针对不同分辨率,清晰图的相同图片)
+
 
 **程序说明**
 程序入口`pic_md5.py`,函数入口`image_md5()`,只需要输入图片路径即可得到对应的md5值
@@ -337,7 +344,7 @@ True
 * 第一对    
 ![b-001.jpg](https://upload-images.jianshu.io/upload_images/5617720-35709ff9392de9e4.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![b-002.jpg](https://upload-images.jianshu.io/upload_images/5617720-ee5f1276ee6d90fb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-* 第二队       
+* 第二对       
 ![b-004.jpg](https://upload-images.jianshu.io/upload_images/5617720-31f2be42b20e8252.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![b-005.jpg](https://upload-images.jianshu.io/upload_images/5617720-9397847a6a02369d.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
@@ -412,7 +419,7 @@ True
 
 | 类别 | 平均匹配特征个数 | 平均处理时间(s) | 最大匹配特征个数 | 最小匹配特征个数 |
 | :------: | :------ | :------ | :------ | :------ |
-| 非关联 | 0.2658 | 0.6310 | 0 | 26 |
+| 非关联 | 0.2658 | 0.6310 | 26 | 0 |
 | 关联 | 50.4 | 0.1665 | 166 | 17 | 
     
 **总结**        
@@ -495,7 +502,7 @@ postpone, and one which we intend to win, and the others, too.
 满足对于类似于微博长文本图片情境下的处理及审核要求.
 
 对于这种图片目前的代码几乎没有识别能力     
-![d.png](https://upload-images.jianshu.io/upload_images/5617720-f7aec2eda9978d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![dota.png](https://upload-images.jianshu.io/upload_images/5617720-f7aec2eda9978d84.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 
 有关改进与优化,这里主要思路一是首先将图片进行**降噪处理**,之后再进行ocr识别,       
@@ -506,11 +513,34 @@ postpone, and one which we intend to win, and the others, too.
 这里主要是对上面的图片相关技术手段的补充,对于文本审核过的结果.
 我们会根据他相关的视频进行聚合,当某一视频下面某类恶意文本产生过多时,我们将对其进行处理.(*具体处理方式?*)
 
+## 流程
+
+### 1. 色情图片<主动识别>
+![image md5.png](https://upload-images.jianshu.io/upload_images/5617720-0f24fb1cdba9f37b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![pron](https://upload-images.jianshu.io/upload_images/5617720-bd899544398668bb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+### 2. 其他恶意图片<被动相似>
+![dHash](https://upload-images.jianshu.io/upload_images/5617720-1f81bb4eed01a403.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![sfit.png](https://upload-images.jianshu.io/upload_images/5617720-3b727aa01f9ced5b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+![](https://upload-images.jianshu.io/upload_images/5617720-7cf76abbaddbda74.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+### 3. 人工审核
+略
+
+### 4. 总体流程
+![all](https://upload-images.jianshu.io/upload_images/5617720-7ad31c04b4ae9787.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+
 ## 策略 
 
 ### 审核策略
 1. 上传的视频经过识别过审后才能播放
-2. 点击量上升速度超过一定阈值的送人工审核接口
+2. 点击量**上升速度**超过一定阈值的送人工审核接口
 
 ~~视频健康度~~
 ~~审核阈值~~
